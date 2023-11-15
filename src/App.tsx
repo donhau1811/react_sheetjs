@@ -278,7 +278,7 @@ export default function App() {
         formData.append("excelFile", file);
         formData.append("sheetName", current);
 
-        const response = await fetch("http://localhost:3000/import-excel", {
+        const response = await fetch("http://localhost:3001/import-excel", {
           method: "POST",
           body: formData,
         });
@@ -286,6 +286,7 @@ export default function App() {
         if (response.ok) {
           const data = await response.json();
           console.log("Upload success:", data);
+          console.log(formData)
           alert('CHÚC MỪNG GẤU ĐỎ')
         } else {
           console.error("Upload failed:", response.statusText);
