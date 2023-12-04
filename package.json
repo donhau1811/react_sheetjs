@@ -10,6 +10,7 @@
     "@types/node": "^16.18.61",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
+    "animate.css": "^4.1.1",
     "react": "^18.2.0",
     "react-data-grid": "^7.0.0-beta.39",
     "react-dom": "^18.2.0",

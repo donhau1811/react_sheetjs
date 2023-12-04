@@ -1,7 +1,7 @@
 import React, { useEffect, useState, ChangeEvent } from "react";
 import DataGrid, { textEditor, Column } from "react-data-grid";
 import { read, utils, WorkSheet, writeFile } from "xlsx";
-
+import 'animate.css';
 import 'react-data-grid/lib/styles.css';
 import './App.css';
 
@@ -151,8 +151,8 @@ export default function App() {
   return (
     <>
       <div style={{ backgroundColor: "#D5EAD8" }}>
-        <h3>SheetJS × React-Data-Grid Demo</h3>
-        <h1 style={{ textAlign: 'center' }}>😍😍😍😍😍😍</h1>
+        <h3 >SheetJS × React-Data-Grid Demo</h3>
+        <h1 className="my-element" style={{textAlign: "center"}}>😍😍😍😍😍😍</h1>
         <input type="file" onChange={handleFile} />
         {sheets.length > 0 && (<>
           <p>Use the dropdown to switch to a worksheet:&nbsp;
