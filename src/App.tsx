@@ -12,20 +12,26 @@ type RowCol = { rows: Row[]; columns: AOAColumn[]; };
 
 function arrayify(rows: any[]): Row[] {
   return rows.map(row => {
-    if (Array.isArray(row)) return row;
+    if (Array.isArray(row)) return row || 0;
     var length = Object.keys(row).length;
     for (; length > 0; --length) if (row[length - 1] != null) break;
     return Array.from({ length, ...row });
   });
 }
 
+
+
+
 /* this method returns `rows` and `columns` data for sheet change */
 const getRowsCols = (data: DataSet, sheetName: string): RowCol => ({
   rows: utils.sheet_to_json<Row>(data[sheetName], { header: 1 }),
+  // rows: utils.sheet_to_json<Row>(data[sheetName], { header: 1, defval: 0 }),
   columns: Array.from({
     length: utils.decode_range(data[sheetName]["!ref"] || "A1").e.c + 1
   }, (_, i) => ({ key: String(i), name: utils.encode_col(i), editor: textEditor }))
 });
+
+
 
 export default function App() {
   const [rows, setRows] = useState<Row[]>([]); // data rows
@@ -50,7 +56,7 @@ export default function App() {
   /* this method handles refreshing the state with new workbook data */
   async function handleAB(file: ArrayBuffer): Promise<void> {
     /* read file data */
-    const data = read(file);
+    const data = read(file, { sheetStubs: true });
 
     /* update workbook state */
     setWorkBook(data.Sheets);
@@ -152,7 +158,7 @@ export default function App() {
     <>
       <div style={{ backgroundColor: "#D5EAD8" }}>
         <h3 >SheetJS × React-Data-Grid Demo</h3>
-        <h1 className="my-element" style={{textAlign: "center"}}>😍😍😍😍😍😍</h1>
+        <h1 className="my-element" style={{ textAlign: "center" }}>😍😍😍😍😍😍</h1>
         <input type="file" onChange={handleFile} />
         {sheets.length > 0 && (<>
           <p>Use the dropdown to switch to a worksheet:&nbsp;
