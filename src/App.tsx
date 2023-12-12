@@ -1,26 +1,32 @@
 import React, { useEffect, useState, ChangeEvent } from "react";
 import DataGrid, { textEditor, Column } from "react-data-grid";
-import { read, utils, WorkSheet, writeFile } from "xlsx";
+import { read, utils, WorkSheet } from "xlsx";
 import 'animate.css';
 import 'react-data-grid/lib/styles.css';
 import './App.css';
+import Calendar from 'react-calendar';
+import { Button } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+// import moment from 'moment';
 
 type DataSet = { [index: string]: WorkSheet; };
 type Row = any[];
 type AOAColumn = Column<Row>;
 type RowCol = { rows: Row[]; columns: AOAColumn[]; };
+type ValuePiece = Date | null;
+
+type Value = ValuePiece | [ValuePiece, ValuePiece]
+
+
 
 function arrayify(rows: any[]): Row[] {
   return rows.map(row => {
-    if (Array.isArray(row)) return row || 0;
+    if (Array.isArray(row)) return row;
     var length = Object.keys(row).length;
     for (; length > 0; --length) if (row[length - 1] != null) break;
     return Array.from({ length, ...row });
   });
 }
-
-
-
 
 /* this method returns `rows` and `columns` data for sheet change */
 const getRowsCols = (data: DataSet, sheetName: string): RowCol => ({
@@ -40,6 +46,8 @@ export default function App() {
   const [sheets, setSheets] = useState<string[]>([]); // list of sheet names
   const [current, setCurrent] = useState<string>(""); // selected sheet
   const [file, setFile] = useState<File | null>(null); // store the uploaded file
+  const [value, setValue] = useState<Value>(new Date())
+  const [showCalendar, setShowCalendar] = useState(false)
 
   /* called when sheet dropdown is changed */
   function selectSheet(name: string) {
@@ -71,13 +79,6 @@ export default function App() {
   }
 
   /* called when file input element is used to select a new file */
-  // async function handleFile(ev: ChangeEvent<HTMLInputElement>): Promise<void> {
-  //   const file = await ev.target.files?.[0]?.arrayBuffer();
-  //   if(file) {
-  //     await handleAB(file)
-  //   } 
-  // }
-
   async function handleFile(ev: ChangeEvent<HTMLInputElement>): Promise<void> {
     const selectedFile = ev.target.files?.[0];
     if (selectedFile) {
@@ -90,12 +91,12 @@ export default function App() {
   }
 
   /* when page is loaded, fetch and processs worksheet */
-  useEffect(() => {
-    (async () => {
-      const f = await fetch("https://sheetjs.com/pres.numbers");
-      await handleAB(await f.arrayBuffer());
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const f = await fetch("https://sheetjs.com/pres.numbers");
+  //     await handleAB(await f.arrayBuffer());
+  //   })();
+  // }, []);
 
   useEffect(() => {
     window.addEventListener('error', (e) => {
@@ -112,26 +113,22 @@ export default function App() {
     })
   }, [])
 
-  /* method is called when one of the save buttons is clicked */
-  function saveFile(ext: string): void {
-    console.log(rows);
-    /* update current worksheet in case changes were made */
-    workBook[current] = utils.aoa_to_sheet(arrayify(rows));
+  function handleCalendarToggle() {
+    setShowCalendar(!showCalendar)
+  }
 
-    /* construct workbook and loop through worksheets */
-    const wb = utils.book_new();
-    sheets.forEach((n) => { utils.book_append_sheet(wb, workBook[n], n); });
-
-    /* generate a file and download it */
-    writeFile(wb, "SheetJSRDG." + ext);
+  function onChange(nextValue: Value) {
+    setValue(nextValue)
+    setShowCalendar(false)
   }
 
   async function uploadToDatabase() {
     try {
-      if (file) {
+      if (file && value) {
         const formData = new FormData();
         formData.append("excelFile", file);
         formData.append("sheetName", current);
+        formData.append("month", value ? value.toString() : new Date().toString())
 
         const response = await fetch("http://localhost:3001/import-excel", {
           method: "POST",
@@ -155,28 +152,42 @@ export default function App() {
   }
 
   return (
-    <>
-      <div style={{ backgroundColor: "#D5EAD8" }}>
-        <h3 >SheetJS × React-Data-Grid Demo</h3>
-        <h1 className="my-element" style={{ textAlign: "center" }}>😍😍😍😍😍😍</h1>
-        <input type="file" onChange={handleFile} />
-        {sheets.length > 0 && (<>
-          <p>Use the dropdown to switch to a worksheet:&nbsp;
-            <select onChange={async (e) => selectSheet(sheets[+(e.target.value)])}>
-              {sheets.map((sheet, idx) => (<option key={sheet} value={idx}>{sheet}</option>))}
-            </select>
-          </p>
-          <div className="flex-cont"><b>Current Sheet: {current}</b></div>
-          <DataGrid columns={columns} rows={rows} onRowsChange={setRows} />
-          <p>Click one of the buttons to create a new file with the modified data</p>
-          <div><button onClick={() => uploadToDatabase()}>Upload to database</button></div>
-          {/* <div className="flex-cont">{["xlsx", "xlsb", "xls"].map((ext) => (
-          <button key={ext} onClick={() => saveFile(ext)}>export [.{ext}]</button>
-        ))}</div> */}
-
-        </>)}
+    <div className="main-content">
+      <h1 className="my-element" style={{ textAlign: "center" }}>😍😍😍😍😍😍</h1>
+      <div style={{ display: "flex", justifyContent: "center", alignContent: "center", flexDirection: "row" }}>
+        {/* <Calendar value={value} onChange={onChange} />
+        <span style={{ marginLeft: "10px", display: "flex", alignItems: "center", fontFamily: "Arial, sans-serif", fontSize: "16px", fontWeight: "bold", color: "#333", textTransform: "uppercase" }}>Selected date: {value?.toLocaleString()} </span>
+         */}
+        <div className="button-container">
+          <Button size="sm" variant="success" onClick={handleCalendarToggle}>
+            {showCalendar ? "Hide Calendar" : "Open Calendar"}
+          </Button>
+          {showCalendar && (
+            <Calendar value={value} onChange={onChange} />
+          )}
+          <span style={{ marginLeft: "10px", display: "flex", alignItems: "center", fontFamily: "Arial, sans-serif", fontSize: "16px", fontWeight: "bold", color: "#333", textTransform: "uppercase" }}>
+            Selected date: {value?.toLocaleString()}
+          </span>
+        </div>
       </div>
-    </>
+      <input type="file" onChange={handleFile} />
+      {sheets.length > 0 && (<>
+        <p>Use the dropdown to switch to a worksheet:&nbsp;
+          <select onChange={async (e) => selectSheet(sheets[+(e.target.value)])}>
+            {sheets.map((sheet, idx) => (<option key={sheet} value={idx}>{sheet}</option>))}
+          </select>
+        </p>
+        <div className="flex-cont"><b>Current Sheet: {current}</b></div>
+        <DataGrid columns={columns} rows={rows} onRowsChange={setRows} rowHeight={40} defaultColumnOptions={{
+          sortable: true,
+          resizable: true
+        }} style={{ minHeight: "50vh" }} />
+        <div style={{ width: "200px", margin: "10px auto" }}>
+          <Button variant="primary" size="sm" onClick={() => uploadToDatabase()}>Upload to database</Button>
+        </div>
+      </>)}
+    </div>
+
   );
 }
 
