@@ -11,12 +11,22 @@
   animation-duration: 2s; 
 }
 
-/* .button-container {
+.calendar-overlay {
+  position: absolute;
+  /* left: 50; */
+  top: 50px;
+  z-index: 9999;
+}
+
+.button-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
-} */
+}
+
+.selected-date {
+  margin-left: 10px;
+}
 
 /* react calendar */
 

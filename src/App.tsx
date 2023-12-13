@@ -48,6 +48,7 @@ export default function App() {
   const [file, setFile] = useState<File | null>(null); // store the uploaded file
   const [value, setValue] = useState<Value>(new Date())
   const [showCalendar, setShowCalendar] = useState(false)
+  const [showSelectedDate, setShowSelectedDate] = useState(false)
 
   /* called when sheet dropdown is changed */
   function selectSheet(name: string) {
@@ -117,9 +118,17 @@ export default function App() {
     setShowCalendar(!showCalendar)
   }
 
+  // function onChange(nextValue: Value) {
+  //   setValue(nextValue)
+  //   setShowCalendar(false)
+  // }
+
   function onChange(nextValue: Value) {
-    setValue(nextValue)
-    setShowCalendar(false)
+    setValue(nextValue);
+    if (nextValue instanceof Date) {
+      setShowCalendar(false)
+      setShowSelectedDate(true)
+    }
   }
 
   async function uploadToDatabase() {
@@ -154,30 +163,34 @@ export default function App() {
   return (
     <div className="main-content">
       <h1 className="my-element" style={{ textAlign: "center" }}>😍😍😍😍😍😍</h1>
-      <div style={{ display: "flex", justifyContent: "center", alignContent: "center", flexDirection: "row" }}>
-        {/* <Calendar value={value} onChange={onChange} />
-        <span style={{ marginLeft: "10px", display: "flex", alignItems: "center", fontFamily: "Arial, sans-serif", fontSize: "16px", fontWeight: "bold", color: "#333", textTransform: "uppercase" }}>Selected date: {value?.toLocaleString()} </span>
-         */}
-        <div className="button-container">
+      <div >
+        <div>
           <Button size="sm" variant="success" onClick={handleCalendarToggle}>
-            {showCalendar ? "Hide Calendar" : "Open Calendar"}
+            {showCalendar ? "Ẩn lịch" : "Mở lịch"}
           </Button>
-          {showCalendar && (
-            <Calendar value={value} onChange={onChange} />
+          {showSelectedDate && (
+            <span style={{ position: "absolute", marginLeft: "20px", marginTop: "0.3%", fontFamily: "Arial, sans-serif", fontSize: "16px", fontWeight: "bold", color: "#333", textTransform: "uppercase" }}>
+              {value instanceof Date ? value.toLocaleDateString() : ""}
+            </span>
           )}
-          <span style={{ marginLeft: "10px", display: "flex", alignItems: "center", fontFamily: "Arial, sans-serif", fontSize: "16px", fontWeight: "bold", color: "#333", textTransform: "uppercase" }}>
-            Selected date: {value?.toLocaleString()}
-          </span>
         </div>
+        {showCalendar && (
+          <div className="calendar-overlay">
+            <Calendar value={value} onChange={onChange} />
+          </div>
+        )}
+     
       </div>
-      <input type="file" onChange={handleFile} />
+      <div style={{  marginTop: "10px" }}>
+          <input type="file" onChange={handleFile} />
+        </div>
       {sheets.length > 0 && (<>
-        <p>Use the dropdown to switch to a worksheet:&nbsp;
-          <select onChange={async (e) => selectSheet(sheets[+(e.target.value)])}>
+        <p>Chọn sheet để tải dữ liệu vào database:&nbsp;
+          <select style={{marginLeft: "10px", marginTop: "10px"}} onChange={async (e) => selectSheet(sheets[+(e.target.value)])}>
             {sheets.map((sheet, idx) => (<option key={sheet} value={idx}>{sheet}</option>))}
           </select>
         </p>
-        <div className="flex-cont"><b>Current Sheet: {current}</b></div>
+        <div className="flex-cont"><b>Sheet hiện tại: {current}</b></div>
         <DataGrid columns={columns} rows={rows} onRowsChange={setRows} rowHeight={40} defaultColumnOptions={{
           sortable: true,
           resizable: true
@@ -187,6 +200,8 @@ export default function App() {
         </div>
       </>)}
     </div>
+
+
 
   );
 }
